@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Scanner;
 
 public class WeatherForecast {
-    private static String API_KEY = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"; // Primary API key
-    private static final String BACKUP_API_KEY = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"; // Backup API key
+    // keys come from ApiKeys (environment or git-ignored config.properties);
+    // the backup is used only when a second key is configured
     private static boolean useBackupKey = false;
 
     public static List<JSONObject> get5DayForecast(String locationName) {
@@ -25,12 +25,12 @@ public class WeatherForecast {
         double longitude = (double) firstLocation.get("longitude");
 
         String urlString = "https://api.openweathermap.org/data/2.5/forecast?lat=" + latitude +
-                "&lon=" + longitude + "&appid=" + (useBackupKey ? BACKUP_API_KEY : API_KEY) + "&units=metric";
+                "&lon=" + longitude + "&appid=" + ApiKeys.get(useBackupKey ? 1 : 0) + "&units=metric";
 
         try {
             HttpURLConnection conn = fetchApiResponse(urlString);
             if (conn == null || conn.getResponseCode() != 200) {
-                if (!useBackupKey) {
+                if (!useBackupKey && ApiKeys.count() > 1) {
                     System.out.println("Primary API key failed, trying backup...");
                     useBackupKey = true;
                     return get5DayForecast(locationName); // Retry with backup key
@@ -69,7 +69,7 @@ public class WeatherForecast {
 
             return forecastList;
         } catch (Exception e) {
-            if (!useBackupKey) {
+            if (!useBackupKey && ApiKeys.count() > 1) {
                 System.out.println("Error with primary API key, trying backup...");
                 useBackupKey = true;
                 return get5DayForecast(locationName); // Retry with backup key
@@ -118,4 +118,4 @@ public class WeatherForecast {
         }
         return null;
     }
-}
+}

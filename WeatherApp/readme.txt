@@ -53,11 +53,12 @@ A Java-based weather application that provides current weather conditions and a 
 
 ## API Keys
 
-The application includes two OpenWeatherMap API keys with automatic failover:
-- Primary key: `XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`
-- Backup key: `XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`
+The app needs a free [OpenWeatherMap API key](https://home.openweathermap.org/api_keys). No key is included in this repository. Provide yours in either of two ways:
 
-Note: These are free-tier API keys with usage limits. For production use, consider obtaining your own API keys from [OpenWeatherMap](https://openweathermap.org/).
+- **Environment variables:** set `OWM_API_KEY` (and, optionally, `OWM_API_KEY_BACKUP`).
+- **Config file:** copy `WeatherApp/config.properties.example` to `config.properties` in the same folder (the directory the app runs from in IntelliJ), and fill in your key. `config.properties` is git-ignored, so the key stays on your machine.
+
+If a second key is configured, the app switches to it when the first is rejected or rate-limited.
 
 ## Technical Details
 
@@ -73,4 +74,4 @@ This project is open-source and available under the MIT License.
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and submit pull requests.
+Contributions are welcome! Please fork the repository and submit pull requests.

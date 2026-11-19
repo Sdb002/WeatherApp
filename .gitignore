@@ -1,0 +1,6 @@
+# local API keys
+config.properties
+# IntelliJ build output
+out/
+.idea/
+*.class
