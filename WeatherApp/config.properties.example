@@ -1,0 +1,5 @@
+# Copy this file to config.properties (git-ignored) and paste your own keys.
+# Free keys: https://home.openweathermap.org/api_keys
+OWM_API_KEY=your-key-here
+# Optional second key, used when the first is rejected or rate-limited
+OWM_API_KEY_BACKUP=

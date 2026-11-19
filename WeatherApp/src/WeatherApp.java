@@ -10,15 +10,17 @@ import java.util.List;
 import java.util.Scanner;
 
 public class WeatherApp {
-    private static final String[] API_KEYS = {
-            "4fb1829475d68b06bfd95d8ae9f138b4", // Primary key
-            "9cac7fed4068cbe8d2862b53574c445f"  // Backup key
-    };
-
+    // keys come from ApiKeys (environment or git-ignored config.properties)
     private static int currentApiKeyIndex = 0;
 
     public static JSONObject getWeatherData(String locationName) {
-        System.out.println("Using API key: " + getCurrentApiKey()); //  print statement
+        return getWeatherData(locationName, 0);
+    }
+
+    // `attempt` counts keys already tried, so a failure with every key
+    // returns null instead of retrying forever
+    private static JSONObject getWeatherData(String locationName, int attempt) {
+        if (ApiKeys.count() == 0) return null;
 
         JSONArray locationData = fetchLocationData(locationName);
         if (locationData == null || locationData.isEmpty()) {
@@ -38,11 +40,11 @@ public class WeatherApp {
         try {
             HttpURLConnection conn = fetchApiResponse(urlString);
             if (conn.getResponseCode() != 200) {
-                System.out.println("Error with key " + getCurrentApiKey() + ": " + conn.getResponseCode());
-                if (conn.getResponseCode() == 401 || conn.getResponseCode() == 429)
-                {
+                System.out.println("Weather request failed: HTTP " + conn.getResponseCode());
+                if ((conn.getResponseCode() == 401 || conn.getResponseCode() == 429)
+                        && attempt + 1 < ApiKeys.count()) {
                     rotateApiKey();
-                    return getWeatherData(locationName); // Retry with new key
+                    return getWeatherData(locationName, attempt + 1); // Retry with the next key
                 }
                 return null;
             }
@@ -87,21 +89,23 @@ public class WeatherApp {
             return weatherData;
         } catch (Exception e) {
 
-            System.err.println("Error with API key " + getCurrentApiKey() + ": " + e.getMessage());
+            System.err.println("Weather request failed: " + e.getMessage());
             e.printStackTrace();
-            // Try rotating key on any error
-            rotateApiKey();
-            return getWeatherData(locationName);
+            if (attempt + 1 < ApiKeys.count()) {
+                rotateApiKey();
+                return getWeatherData(locationName, attempt + 1); // Retry with the next key
+            }
+            return null;
         }
     }
 
     private static String getCurrentApiKey() {
-        return API_KEYS[currentApiKeyIndex];
+        return ApiKeys.get(currentApiKeyIndex);
     }
 
     private static void rotateApiKey() {
-        currentApiKeyIndex = (currentApiKeyIndex + 1) % API_KEYS.length;
-        System.out.println("Rotated to API key: " + getCurrentApiKey());
+        currentApiKeyIndex = (currentApiKeyIndex + 1) % Math.max(1, ApiKeys.count());
+        System.out.println("Switched to API key #" + (currentApiKeyIndex + 1));
     }
 
     public static List<String> getLocationSuggestions(String query) {
@@ -162,4 +166,4 @@ public class WeatherApp {
     }
 
 
-}
+}
